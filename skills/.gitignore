@@ -1,0 +1,17 @@
+# Ignore everything
+*
+
+# Allow traversal into directories
+!*/
+
+# Keep git metadata
+!.gitignore
+
+# Keep top-level docs
+!SOUL.md
+!SKILL.md
+!IDENTITY.md
+
+# Keep Roblox development skill tree
+!skills/roblox-development/
+!skills/roblox-development/**
