@@ -2,7 +2,7 @@
 
 Operational skills for Alfred, the always-on automation layer used alongside ChatGPT, GitHub, and game repositories.
 
-This repository is the shared **automation-and-delivery layer**. Alfred handles scheduled jobs, Telegram routing, VPS operations, monitoring, repository synchronization, and notifications. Product reasoning and reusable game-development workflows live in `DadNapper/game-dev-skills` instead.
+This repository is the shared **automation-and-delivery skill pack**. Alfred uses it for Telegram routing, VPS operations, monitoring, repository synchronization, scheduled reporting, and notifications. Product reasoning and reusable game-development workflows live in `DadNapper/game-dev-skills` instead.
 
 ## Use this repository when
 
@@ -29,6 +29,7 @@ This repository is the shared **automation-and-delivery layer**. Alfred handles 
 - New-game repository scaffolding
 - Game-specific source of truth that belongs in a game repository
 - Agent personality or duplicated project memory
+- Hermes runtime configuration; that belongs in `DadNapper/alfred`
 
 ## Current boundary
 
@@ -54,6 +55,41 @@ The active Roblox-development automation skills currently include:
 
 Additional monitoring or scheduled-delivery skills belong here when they require Alfred’s always-on runtime.
 
+## Pull and install on Hermes
+
+Keep the source repository separate from the live Hermes skill directory:
+
+```bash
+~/projects/alfred-skills
+```
+
+Clone it once:
+
+```bash
+mkdir -p ~/projects
+git clone git@github.com:DadNapper/alfred-skills.git ~/projects/alfred-skills
+```
+
+For later updates:
+
+```bash
+cd ~/projects/alfred-skills
+git status --short
+git pull --ff-only
+```
+
+Install or refresh the retained skills into Hermes:
+
+```bash
+mkdir -p ~/.hermes/skills
+cp -R ~/projects/alfred-skills/hermes/scraplands-telegram-topics ~/.hermes/skills/
+cp -R ~/projects/alfred-skills/hermes/scraplands-git-workflow ~/.hermes/skills/
+```
+
+Do not copy the repository root into `~/.hermes`. Only copy the skill folders Alfred should actively load.
+
+After updating skills, restart or reload Hermes only through the normal approved gateway workflow. Pulling skill files alone does not authorize killing active agents or restarting services.
+
 ## Operating rules
 
 - Treat Telegram history as transient; write durable outcomes to the relevant game repository.
@@ -67,9 +103,9 @@ Additional monitoring or scheduled-delivery skills belong here when they require
 
 | Repository | Responsibility |
 |---|---|
+| `DadNapper/alfred` | Hermes runtime configuration and VPS-specific operational state |
 | `DadNapper/game-dev-skills` | Shared reasoning, triage, handoff, and release workflows |
 | `DadNapper/roblox-game-kit` | Reusable Roblox Luau packages |
 | `DadNapper/roblox-script-sync-template` | New-game repository scaffold |
 | `DadNapper/game-dev-workspace` | Safe multi-repository local operations |
 | Individual game repository | Game-specific production truth |
-| `DadNapper/alfred-skills` | Alfred-specific automation and delivery workflows |
