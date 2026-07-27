@@ -1,17 +1,13 @@
 ---
 name: scraplands-git-workflow
-description: >-
-  Alfred/Hermes git workflow for Scraplands on VPS. Use for sync, commits, ship,
-  branch safety, or any git operation on ~/projects/scraplands.
+description: Alfred VPS git workflow for Scraplands. Use for repository sync, approved commits and pushes, branch safety, and operational git failures on ~/projects/scraplands.
 ---
 
 # Scraplands Git Workflow (Alfred)
 
-Full doc: repo `shellScripts/README.md`.
+This is an Alfred-specific operational skill. Product reasoning, bug triage, implementation planning, and release judgment live in `DadNapper/game-dev-skills` and the active game repository.
 
-## Model routing
-
-Multi-step git batches (sync + inspect + ship prep across many files) should use **`delegate_task`** when the work is mechanical. Subagents run on OpenRouter `qwen/qwen3-coder`; keep the main GPT-5.5 session for judgment calls and Oz-facing summaries. See `scraplands-hermes/references/model_routing.md`.
+Full operational documentation: repo `shellScripts/README.md`.
 
 ## Repo path
 
@@ -19,52 +15,40 @@ Multi-step git batches (sync + inspect + ship prep across many files) should use
 ~/projects/scraplands
 ```
 
-## Every task sequence
+## Task sequence
 
-1. **Sync** — `scrapupdate` (before starting any work)
-2. **Work** — edit files; do not pull/rebase/merge mid-task
-3. **Ship** — when Oz says "ready to ship", follow repo `ai/workflows/ready_to_ship.md`, then use `./shellScripts/ship.sh "commit message"` when commit/push is approved
+1. **Sync** — run `scrapupdate` before beginning operational work.
+2. **Inspect** — confirm branch, tracking state, and working-tree status.
+3. **Work** — do not pull, rebase, or merge in the middle of an active edit.
+4. **Ship** — only after explicit approval, follow the game repo's release workflow and use `./shellScripts/ship.sh "commit message"`.
+5. **Verify** — check `git status -sb` and `git log -1 --oneline`; do not trust a success echo alone.
 
 ## Never
 
-- Random ad-hoc git commands
-- Force push unless Oz explicitly instructs
-- Rebase or merge during an active task
-- Commit with ad-hoc messages outside `ship.sh` workflow
-- Destructive git without explicit instruction
+- Force-push unless explicitly instructed
+- Perform destructive git operations without explicit approval
+- Commit or push because a task merely appears complete
+- Replace product/release judgment supplied by ChatGPT or the game repository
 
-## Commit identity
+## Pre-commit operational checks
 
-```bash
-git config --global user.name "Alfred"
-git config --global user.email "alfred@scraplands.dev"  # or project email
-```
+- Debug and test overrides are disabled.
+- Required project documentation and localization updates are present.
+- Human Studio validation has happened when required by the game repository.
+- The requested commit scope matches the actual diff.
 
-## Pre-commit checks
+## Push rejection recovery
 
-- `DEBUG_ENABLED` must be `false` in all modified scripts
-- README changelogs updated for feature/fix commits
-- Localization CSV updated in repo if player-facing strings changed (Oz uploads to Studio)
+If a commit was created but push was rejected because remote `main` moved:
 
-## Ship script push-rejection pitfall
+1. Run `git fetch origin`.
+2. Inspect `git status -sb` and `git log --oneline --decorate --left-right HEAD...origin/main`.
+3. If local is exactly one approved Alfred commit ahead and only behind remote commits, rebase onto `origin/main`.
+4. Push using `./shellScripts/push.sh`.
+5. Verify clean tracking state and the latest commit SHA.
 
-`./shellScripts/ship.sh` may still print `Shipped successfully.` even when `git push` is rejected because remote `main` moved. Do not trust the final echo alone. Always verify after ship with `git status -sb` and `git log -1 --oneline`.
+Do not force-push or reset to recover. Escalate on conflicts.
 
-If the commit was created but push was rejected with `fetch first`:
+## Reporting
 
-1. Run `git fetch origin` and inspect `git status -sb` plus `git log --oneline --decorate --left-right HEAD...origin/main`.
-2. If local branch is exactly one Alfred commit ahead and only behind new remote commits, rebase that local commit onto `origin/main` (`git rebase origin/main`).
-3. Push using `./shellScripts/push.sh`.
-4. Re-verify clean tracking state and latest commit SHA before telling Oz it shipped.
-
-Do **not** force-push or reset to recover from this; escalate if the rebase conflicts.
-
-## Hermes vs Cursor on git
-
-- **Cursor** may prep commits when Oz asks
-- **Hermes/Alfred** uses `ship.sh` on VPS after human validation
-- Never assume auto-commit or auto-push
-
-## Agent ops topic
-
-Report git failures clearly: command run, error output, suggested fix. Keep infra chatter in 🤖 Agent Ops topic, not Active Dev.
+Report the command run, relevant error output, repository state, and the safest next action in the Telegram Agent Ops topic.
